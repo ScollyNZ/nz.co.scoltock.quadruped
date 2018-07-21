@@ -36,6 +36,9 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 #define SERVOMIN  290 // this is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  500 // this is the 'maximum' pulse length count (out of 4096)
 
+uint16_t servoMins[] = {130, 130, 340, 170, 290, 130, 290, 130};
+uint16_t servoMaxs[] = {340, 490, 580, 570, 500, 490, 500, 570};
+
 // our servo # counter
 uint8_t servonum = 0;
 
@@ -50,36 +53,77 @@ void setup() {
   delay(10);
 }
 
-// you can use this function if you'd like to set the pulse length in seconds
-// e.g. setServoPulse(0, 0.001) is a ~1 millisecond pulse width. its not precise!
-void setServoPulse(uint8_t n, double pulse) {
-  double pulselength;
+// servoNumber is 0 - 7
+// position is 1 to 100
+void setServoPosition(uint8_t servoNumber, uint8_t position)
+{
+  if (position < 1) position=1;
+  if (position > 100) position = 100;
+  uint16_t pulseLength = calculatePulseLength(servoNumber, position);
+
   
-  pulselength = 1000000;   // 1,000,000 us per second
-  pulselength /= 60;   // 60 Hz
-  Serial.print(pulselength); Serial.println(" us per period"); 
-  pulselength /= 4096;  // 12 bits of resolution
-  Serial.print(pulselength); Serial.println(" us per bit"); 
-  pulse *= 1000000;  // convert to us
-  pulse /= pulselength;
-  Serial.println(pulse);
-  pwm.setPWM(n, 0, pulse);
+  pwm.setPWM(servoNumber,0,pulseLength);
+  Serial.print(servoNumber);
+  Serial.print(":");
+  Serial.print(pulseLength);
+  Serial.println("");
 }
 
+uint16_t calculatePulseLength(uint8_t servoNumber, uint8_t position)
+{
+uint16_t range = (servoMaxs[servoNumber] - servoMins[servoNumber]);
+float percentPosition = (position / 100.0);
+
+Serial.print(range);
+Serial.print("::");
+Serial.print(percentPosition);
+
+
+  
+return (range * percentPosition) + servoMins[servoNumber];
+}
+
+
 void loop() {
+  setServoPosition(0, 0);
+  setServoPosition(2, 0);
+  setServoPosition(4, 0);
+  setServoPosition(6, 0);
+  delay(1000);
+  setServoPosition(0,50);
+  setServoPosition(2,50);
+  setServoPosition(4,50);
+  setServoPosition(5,50);
+  delay(2000);
+  setServoPosition(0,100);
+  setServoPosition(2,100);
+  setServoPosition(4,100);
+  setServoPosition(6,100);
+  delay(3000);
+  setServoPosition(0,50);
+  setServoPosition(2,50);
+  setServoPosition(4,50);
+  setServoPosition(6,50);
+  delay(2000);
+  
+  
+
+
+
+  
   // Drive each servo one at a time
-  Serial.println(servonum);
-  for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
-    pwm.setPWM(servonum, 0, pulselen);
-    Serial.println(pulselen);
-    delay(30);
-  }
+  //Serial.println(servonum);
+  //for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
+  //  pwm.setPWM(servonum, 0, pulselen);
+  //  Serial.println(pulselen);
+  //  delay(30);
+  //}
 
-  delay(500);
-  pwm.setPWM(servonum, 0, SERVOMIN);
+  //delay(500);
+  //pwm.setPWM(servonum, 0, SERVOMIN);
 
 
-  delay(500);
+  //delay(500);
 
   //servonum ++;
   //if (servonum > 7) servonum = 0;
