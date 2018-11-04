@@ -36,8 +36,8 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 #define SERVOMIN  290 // this is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  500 // this is the 'maximum' pulse length count (out of 4096)
 
-uint16_t servoMins[] = {130, 130, 340, 170, 290, 130, 290, 130};
-uint16_t servoMaxs[] = {340, 490, 580, 570, 500, 490, 500, 570};
+uint16_t servoMins[] = {130, 130, 350, 170, 290, 130, 290, 130};
+uint16_t servoMaxs[] = {340, 490, 590, 570, 500, 490, 500, 570};
 
 // our servo # counter
 uint8_t servonum = 0;
@@ -85,6 +85,62 @@ return (range * percentPosition) + servoMins[servoNumber];
 
 
 void loop() {
+  // Stand Up
+  setServoPosition(0,100);
+  setServoPosition(2,100);
+  setServoPosition(4,100);
+  setServoPosition(6,100);
+  delay(3000);
+  
+  // Lift foot 1
+  setServoPosition(0, 0);
+  delay(2000);
+  
+  // Rotate and Centre Leg 1
+  setServoPosition(1,0);
+  delay(2000);
+  setServoPosition(1,100);
+  delay(2000);
+  setServoPosition(1,50);
+  delay(2000);
+  // Land foot 1
+  setServoPosition(0,100);
+  delay(2000);
+
+  // Sit Down
+  setServoPosition(0,0);
+  setServoPosition(2,0);
+  setServoPosition(4,0);
+  setServoPosition(6,0);
+  delay(3000);
+  
+    
+  // Drive each servo one at a time
+  //Serial.println(servonum);
+  //for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
+  //  pwm.setPWM(servonum, 0, pulselen);
+  //  Serial.println(pulselen);
+  //  delay(30);
+  //}
+
+  //delay(500);
+  //pwm.setPWM(servonum, 0, SERVOMIN);
+
+
+  //delay(500);
+
+  //servonum ++;
+  //if (servonum > 7) servonum = 0;
+}
+
+
+void doPressup()
+{
+  setServoPosition(0,100);
+  setServoPosition(2,100);
+  setServoPosition(4,100);
+  setServoPosition(6,100);
+  delay(3000);
   setServoPosition(0, 0);
   setServoPosition(2, 0);
   setServoPosition(4, 0);
@@ -105,26 +161,4 @@ void loop() {
   setServoPosition(4,50);
   setServoPosition(6,50);
   delay(2000);
-  
-  
-
-
-
-  
-  // Drive each servo one at a time
-  //Serial.println(servonum);
-  //for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
-  //  pwm.setPWM(servonum, 0, pulselen);
-  //  Serial.println(pulselen);
-  //  delay(30);
-  //}
-
-  //delay(500);
-  //pwm.setPWM(servonum, 0, SERVOMIN);
-
-
-  //delay(500);
-
-  //servonum ++;
-  //if (servonum > 7) servonum = 0;
 }
