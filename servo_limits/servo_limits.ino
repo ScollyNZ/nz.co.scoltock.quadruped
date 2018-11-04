@@ -93,7 +93,7 @@ void loop() {
   setServoPosition(0,50);
   setServoPosition(2,50);
   setServoPosition(4,50);
-  setServoPosition(5,50);
+  setServoPosition(6,50);
   delay(2000);
   setServoPosition(0,100);
   setServoPosition(2,100);
