@@ -1,50 +1,19 @@
-/*************************************************** 
-  This is an example for our Adafruit 16-channel PWM & Servo driver
-  Servo test - this will drive 8 servos, one after the other on the
-  first 8 pins of the PCA9685
-
-  Pick one up today in the adafruit shop!
-  ------> http://www.adafruit.com/products/815
-  
-  These drivers use I2C to communicate, 2 pins are required to  
-  interface.
-
-  Adafruit invests time and resources providing this open source code, 
-  please support Adafruit and open-source hardware by purchasing 
-  products from Adafruit!
-
-  Written by Limor Fried/Ladyada for Adafruit Industries.  
-  BSD license, all text above must be included in any redistribution
- ****************************************************/
 
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 
-
-
-// called this way, it uses the default address 0x40
+// intialize PWM board
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
-// you can also call it with a different address you want
-//Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
-// you can also call it with a different address and I2C interface
-//Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(&Wire, 0x40);
 
-// Depending on your servo make, the pulse width min and max may vary, you 
-// want these to be as small/large as possible without hitting the hard stop
-// for max range. You'll have to tweak them as necessary to match the servos you
-// have!
-#define SERVOMIN  290 // this is the 'minimum' pulse length count (out of 4096)
-#define SERVOMAX  500 // this is the 'maximum' pulse length count (out of 4096)
 
-uint16_t servoMins[] = {130, 130, 350, 170, 290, 130, 290, 130};
-uint16_t servoMaxs[] = {340, 490, 590, 570, 500, 490, 500, 570};
-
-// our servo # counter
-uint8_t servonum = 0;
+// Each servo will have different limits depending on how the leg is assembled.
+// Each leg is a pair of limits, the first being the foot height, the second the leg position
+uint16_t servoMins[] = {130, 110, 350, 160, 290, 110, 290, 130};
+uint16_t servoMaxs[] = {340, 470, 590, 560, 500, 470, 500, 570};
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("8 channel Servo test!");
+  Serial.println("Quadruped running");
 
   pwm.begin();
   
@@ -57,55 +26,47 @@ void setup() {
 // position is 1 to 100
 void setServoPosition(uint8_t servoNumber, uint8_t position)
 {
+  //Enforce limits to avoid overruns
   if (position < 1) position=1;
   if (position > 100) position = 100;
+
+  //Calculate actual pulse width required based on limits for given servo
   uint16_t pulseLength = calculatePulseLength(servoNumber, position);
 
-  
+  //Push value of IIC to PWM board
   pwm.setPWM(servoNumber,0,pulseLength);
-  Serial.print(servoNumber);
-  Serial.print(":");
-  Serial.print(pulseLength);
-  Serial.println("");
 }
+
+
 
 uint16_t calculatePulseLength(uint8_t servoNumber, uint8_t position)
 {
-uint16_t range = (servoMaxs[servoNumber] - servoMins[servoNumber]);
-float percentPosition = (position / 100.0);
+  //retrieve range for given servo
+  uint16_t range = (servoMaxs[servoNumber] - servoMins[servoNumber]);
+  //calculate actual position required based on percentage of total range
+  float percentPosition = (position / 100.0);
 
-Serial.print(range);
-Serial.print("::");
-Serial.print(percentPosition);
-
-
-  
-return (range * percentPosition) + servoMins[servoNumber];
+  return (range * percentPosition) + servoMins[servoNumber];
 }
 
 
 void loop() {
+
+  int fullHeight = 50;  //How high to stand up. 100 is full height and difficult to balance
+  
   // Stand Up
-  setServoPosition(0,100);
-  setServoPosition(2,100);
-  setServoPosition(4,100);
-  setServoPosition(6,100);
+  setServoPosition(0,fullHeight);
+  setServoPosition(2,fullHeight);
+  setServoPosition(4,fullHeight);
+  setServoPosition(6,fullHeight);
   delay(3000);
+   
+  // Rotate and Centre Legs
+  centerLeg(0,fullHeight,30);
+  centerLeg(1,fullHeight,70);
+  centerLeg(2,fullHeight,30);
+  centerLeg(3,fullHeight,70);
   
-  // Lift foot 1
-  setServoPosition(0, 0);
-  delay(2000);
-  
-  // Rotate and Centre Leg 1
-  setServoPosition(1,0);
-  delay(2000);
-  setServoPosition(1,100);
-  delay(2000);
-  setServoPosition(1,50);
-  delay(2000);
-  // Land foot 1
-  setServoPosition(0,100);
-  delay(2000);
 
   // Sit Down
   setServoPosition(0,0);
@@ -113,24 +74,22 @@ void loop() {
   setServoPosition(4,0);
   setServoPosition(6,0);
   delay(3000);
-  
     
-  // Drive each servo one at a time
-  //Serial.println(servonum);
-  //for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
-  //  pwm.setPWM(servonum, 0, pulselen);
-  //  Serial.println(pulselen);
-  //  delay(30);
-  //}
+}
 
-  //delay(500);
-  //pwm.setPWM(servonum, 0, SERVOMIN);
-
-
-  //delay(500);
-
-  //servonum ++;
-  //if (servonum > 7) servonum = 0;
+// foot = 0 to 3
+void centerLeg(int foot,int fullHeight,int position )
+{
+  if (foot >= 0 && foot <= 3)
+  {
+    int pauseLen = 200;
+    setServoPosition(foot*2,0);  //lift foot
+    delay(pauseLen);
+    setServoPosition((foot*2)+1,position); //center leg
+    delay(pauseLen);
+    setServoPosition(foot*2,fullHeight); //land foot
+    delay(pauseLen);
+  }
 }
 
 
