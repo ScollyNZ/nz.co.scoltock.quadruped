@@ -26,6 +26,9 @@ const char * hostName = "robot1";
 const char* http_username = "admin";
 const char* http_password = "admin";
 
+const int DoPressUp = 1;
+int nextAction = 0;
+
 
 void setup(){
   Serial.begin(115200);
@@ -63,8 +66,8 @@ void setup(){
   });
 
   server.on("/do/pressup",HTTP_GET,[](AsyncWebServerRequest *request){
-    doPressup();
-    request->send(200, "text/html", "press up done");
+    nextAction = DoPressUp;
+    request->send(200, "text/html", "press up queued");
   });
 
   server.on("/css",HTTP_GET,[](AsyncWebServerRequest *request){
@@ -142,4 +145,11 @@ void setup(){
 
 
 void loop(){
+  switch (nextAction){
+    case DoPressUp:
+      doPressup();
+      break;
+  }
+
+  nextAction=0;
 }

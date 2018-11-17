@@ -17,7 +17,7 @@ bool PWMinitialised = false;
 void initPWM(){
   if (!PWMinitialised){
     pwm.begin();
-    pwm.setPWMFreq(50);  // Analog servos run at ~60 Hz updates
+    pwm.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
     PWMinitialised = true;
   }
 }
@@ -31,7 +31,8 @@ void initControlMode(){
 
 // servoNumber is 0 - 7
 // position is 1 to 100
-void setServoPosition(uint8_t servoNumber, uint8_t position)
+// pauseMs - optional, milliseconds to pause once position set
+void setServoPosition(uint8_t servoNumber, uint8_t position, int pauseMs = 0)
 {
   //Enforce limits to avoid overruns
   if (position < 1) position=1;
@@ -42,6 +43,14 @@ void setServoPosition(uint8_t servoNumber, uint8_t position)
 
   //Push value of IIC to PWM board
   pwm.setPWM(servoNumber,0,pulseLength);
+
+  //if (delay > 0){
+    //unsigned long now = millis();
+    //while(millis() - now < pauseMs){
+    //  Serial.print(".");  //something to induce a delay
+    //}
+  delay(pauseMs);
+  //}
 }
 
 
@@ -164,32 +173,31 @@ void doPressup()
   setServoPosition(0,100);
   setServoPosition(2,100);
   setServoPosition(4,100);
-  setServoPosition(6,100);
-  delay(3000);
+  setServoPosition(6,100,3000);
+
   Serial.println("Step 1");
   setServoPosition(0, 0);
   setServoPosition(2, 0);
   setServoPosition(4, 0);
-  setServoPosition(6, 0);
-  delay(1000);
+  setServoPosition(6, 0, 1000);
+  
   Serial.println("Step 2");
   setServoPosition(0,50);
   setServoPosition(2,50);
   setServoPosition(4,50);
-  setServoPosition(6,50);
-  delay(2000);
+  setServoPosition(6,50, 2000);
+  
   Serial.println("Step 3");
   setServoPosition(0,100);
   setServoPosition(2,100);
   setServoPosition(4,100);
-  setServoPosition(6,100);
-  delay(3000);
+  setServoPosition(6,100, 3000);
+
   Serial.println("Step 4");
-  setServoPosition(0,50);
-  setServoPosition(2,50);
-  setServoPosition(4,50);
-  setServoPosition(6,50);
-  delay(2000);
+  setServoPosition(0,0);
+  setServoPosition(2,0);
+  setServoPosition(4,0);
+  setServoPosition(6,0, 2000);
 
   Serial.println("pressup done");
 }
