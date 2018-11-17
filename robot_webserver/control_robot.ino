@@ -1,12 +1,7 @@
 
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
 
-ESP8266WebServer server(80);
 
 // intialize PWM board
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
@@ -17,38 +12,14 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 uint16_t servoMins[] = {130, 110, 350, 160, 250, 110, 290, 130};
 uint16_t servoMaxs[] = {340, 470, 590, 560, 460, 470, 500, 570};
 
-const char* ssid = "robot1";
-const char* password = "";
-const char* hostName = "robot1";
-
-void setup() {
-    initSerial();
-    initWebServerAndWiFi();
-    //initPWM();
-    //initControlMode();  //pauses for 5 seconds to allow for selection of serial mode
-    
-}
-
-void initWebServerAndWiFi(){
-  WiFi.hostname(hostName);
-  WiFi.mode(WIFI_AP_STA);
-  WiFi.softAP(hostName);
-  WiFi.begin(ssid, password);
-  Serial.println(WiFi.localIP());
-
-  server.on("/", handleRoot);
-  server.begin();
-  Serial.println("HTTP server started");
-}
-
-void initSerial(){
-  Serial.begin(9600);
-  Serial.println("Quadruped running");
-}
+bool PWMinitialised = false;
 
 void initPWM(){
-  pwm.begin();
-  pwm.setPWMFreq(50);  // Analog servos run at ~60 Hz updates
+  if (!PWMinitialised){
+    pwm.begin();
+    pwm.setPWMFreq(50);  // Analog servos run at ~60 Hz updates
+    PWMinitialised = true;
+  }
 }
 
 void initControlMode(){
@@ -86,7 +57,7 @@ uint16_t calculatePulseLength(uint8_t servoNumber, uint8_t position)
 }
 
 
-void loop() {
+void autoMode() {
   delay(250);
   return;
   //switch to serial control mode if there is any data in the buffer
@@ -188,58 +159,37 @@ void moveToStringPosition(String position)
 
 void doPressup()
 {
+  initPWM();
+  Serial.println("doing pressup");
   setServoPosition(0,100);
   setServoPosition(2,100);
   setServoPosition(4,100);
   setServoPosition(6,100);
   delay(3000);
+  Serial.println("Step 1");
   setServoPosition(0, 0);
   setServoPosition(2, 0);
   setServoPosition(4, 0);
   setServoPosition(6, 0);
   delay(1000);
+  Serial.println("Step 2");
   setServoPosition(0,50);
   setServoPosition(2,50);
   setServoPosition(4,50);
   setServoPosition(6,50);
   delay(2000);
+  Serial.println("Step 3");
   setServoPosition(0,100);
   setServoPosition(2,100);
   setServoPosition(4,100);
   setServoPosition(6,100);
   delay(3000);
+  Serial.println("Step 4");
   setServoPosition(0,50);
   setServoPosition(2,50);
   setServoPosition(4,50);
   setServoPosition(6,50);
   delay(2000);
-}
 
-void handleRoot() {
-  Serial.println("handle root");
-  char temp[400];
-  int sec = millis() / 1000;
-  int min = sec / 60;
-  int hr = min / 60;
-
-  snprintf(temp, 400,
-
-           "<html>\
-  <head>\
-    <meta http-equiv='refresh' content='5'/>\
-    <title>ESP8266 Demo</title>\
-    <style>\
-      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
-    </style>\
-  </head>\
-  <body>\
-    <h1>Hello from ESP8266!</h1>\
-    <p>Uptime: %02d:%02d:%02d</p>\
-    <img src=\"/test.svg\" />\
-  </body>\
-</html>",
-
-           hr, min % 60, sec % 60
-          );
-  server.send(200, "text/html", temp);
+  Serial.println("pressup done");
 }
